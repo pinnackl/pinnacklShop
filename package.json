@@ -1,0 +1,17 @@
+{
+  "name": "pinnackl-shop",
+  "version": "1.0.0",
+  "description": "### Setup",
+  "main": "index.html",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "paper-paypal-component": "^1.0.0"
+  }
+}
