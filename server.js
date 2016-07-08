@@ -13,7 +13,7 @@ var bodyParser = require('body-parser');
 
 var app = express();
 var http = require('http').Server(app);
-
+var port = 8000;
 app.use(bodyParser());
 
 /**
@@ -34,14 +34,23 @@ app.use("/node_modules", express.static(__dirname + '/node_modules'));
  * As it is a SPA all request should return to index.html
  * But not the api request
  * so we need to user the wildcast '*'
+ * 
+ * We also need to have access to the paper-paypal-component sqk through the predefined routes
+ * So we declare the /paypal/* route with the wildcard before the application routes wildcard
  */
-// FIXME: rewriting user hash
-app.get('/', function(req, res) {
+
+// paper-paypal-component routes
+app.get('/paypal/*', function (req, res) {
+	paypal.init(app, __dirname);	
+});
+
+// Application routes
+app.get('*', function(req, res) {
   res.sendFile(__dirname + '/index.html');
 
   paypal.init(app, __dirname);
 });
 
-http.listen(8000, function() {
-  console.log('listening on *:8000');
+http.listen(port, function() {
+  console.log('listening on *:', port);
 });
