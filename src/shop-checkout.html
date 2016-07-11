@@ -24,7 +24,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shop-common-styles shop-button shop-form-styles shop-input shop-select shop-checkbox">
 
       .main-frame {
-        transition: opacity 0.5s;
+        transaction: opacity 0.5s;
       }
 
       :host([waiting]) .main-frame {
@@ -498,19 +498,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // To send the form data to the server:
           // 2) Remove the code below.
           // 3) Uncomment `this.$.checkoutForm.submit()`.
-
+          var paypalApi = window.paypalApi;
           this.$.checkoutForm.fire('iron-form-presubmit', null, { bubbles: false });
 
           this.debounce('_submitForm', function() {
-            this.$.checkoutForm.fire('iron-form-response', {
-              response: {
-                success: 1,
-                successMessage: 'Demo checkout process complete.'
-              }
-            }, { bubbles: false });
+            // Set the transtaction array
+            var transaction = [];
+            this.cart.forEach(function (el) {
+              // Create a transtaction object
+              var obj = {
+                price:el.item.price*el.quantity,
+                description:el.item.description,
+                currency:'USD'
+              };
+              transaction.push(obj);
+            });
+            console.log(transaction);
+            paypalApi.getToken(function () {
+              paypalApi.sendPayment({
+                transaction: transaction,
+                returnUrl: '/checkout'
+              });
+            });
+
+            // this.$.checkoutForm.fire('iron-form-response', {
+            //   response: {
+            //     success: 1,
+            //     successMessage: 'Demo checkout process complete.'
+            //   }
+            // }, { bubbles: false });
           }, 1000);
 
           // this.$.checkoutForm.submit();
+        }
+      },
+
+      _parseQueryString: function() {
+
+        var str = window.location.search;
+        var objURL = {};
+
+        str.replace(
+            new RegExp( "([^?=&]+)(=([^&]*))?", "g" ),
+            function( $0, $1, $2, $3 ){
+                objURL[ $1 ] = $3;
+            }
+        );
+        return objURL;
+      },
+
+      ready: function (e) {
+        var queryObj = this._parseQueryString();
+        if (queryObj.paymentId) {
+            // this._setWaiting(true);
+            // this.$.checkoutForm.fire('iron-form-presubmit', null, { bubbles: false });
+            // this.$.checkoutForm.fire('iron-form-response', {
+              // response: {
+                // success: 1,
+                // successMessage: 'Demo checkout process complete.'
+              // }
+            // }, { bubbles: false });
         }
       },
 
@@ -617,7 +664,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       /**
        * Handles the response from the server by checking the response status
-       * and transitioning to the success or error UI.
+       * and transactioning to the success or error UI.
        */
       _didReceiveResponse: function(e) {
         var response = e.detail.response;
