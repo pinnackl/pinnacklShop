@@ -40,15 +40,11 @@ app.use("/node_modules", express.static(__dirname + '/node_modules'));
  */
 
 // paper-paypal-component routes
-app.get('/paypal/*', function (req, res) {
-	paypal.init(app, __dirname);	
-});
+paypal.init(app, __dirname);
 
 // Application routes
 app.get('*', function(req, res) {
   res.sendFile(__dirname + '/index.html');
-
-  paypal.init(app, __dirname);
 });
 
 http.listen(port, function() {
