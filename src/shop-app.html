@@ -300,7 +300,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <!-- cart view -->
       <shop-cart name="cart" cart="[[cart]]" total="[[total]]"></shop-cart>
       <!-- checkout view -->
-      <shop-checkout name="checkout" cart="[[cart]]" total="[[total]]" route="{{subroute}}"></shop-checkout>
+      <shop-checkout name="checkout" cart="[[cart]]" total="[[total]]" route="{{subroute}}" address="{{address}}"></shop-checkout>
+      <!-- confirm view -->
+      <shop-confirm name="confirm" cart="[[cart]]" total="[[total]]" route="{{subroute}}" address="{{address}}">
+      </shop-confirm>
     </iron-pages>
 
     <footer>
@@ -385,6 +388,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _pageChanged: function(page, oldPage) {
         if (page != null) {
+          console.log(page);
           // home route is eagerly loaded
           if (page == 'home') {
             this._pageLoaded(Boolean(oldPage));
