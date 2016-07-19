@@ -405,6 +405,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </div>
           <div class="paypal-checkout">
             <h2>Checkout with Paypal</h2>
+              <shop-button  id="submitBox">
+                <input type="button" on-click="_paypalSubmit" value="Paypal">
+              </shop-button>
           </div>
         </div>
 
@@ -526,39 +529,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           // To send the form data to the server:
           // 2) Remove the code below.
           // 3) Uncomment `this.$.checkoutForm.submit()`.
-          var paypalApi = window.paypalApi;
           this.$.checkoutForm.fire('iron-form-presubmit', null, { bubbles: false });
 
           this.debounce('_submitForm', function() {
-            // Set the transtaction array
-            var transaction = [];
-            this.cart.forEach(function (el) {
-              // Create a transtaction object
-              var obj = {
-                price:el.item.price*el.quantity,
-                description:el.item.description,
-                currency:'USD'
-              };
-              transaction.push(obj);
-            });
 
-            paypalApi.getToken(function () {
-              paypalApi.sendPayment({
-                transaction: transaction,
-                returnUrl: '/confirm'
-              });
-            });
-
-            // this.$.checkoutForm.fire('iron-form-response', {
-            //   response: {
-            //     success: 1,
-            //     successMessage: 'Demo checkout process complete.'
-            //   }
-            // }, { bubbles: false });
+            this.$.checkoutForm.fire('iron-form-response', {
+              response: {
+                success: 1,
+                successMessage: 'Demo checkout process complete.'
+              }
+            }, { bubbles: false });
           }, 1000);
 
           // this.$.checkoutForm.submit();
         }
+      },
+
+      _paypalSubmit: function() {
+          var paypalApi = window.paypalApi;
+          // Set the transtaction array
+          var transaction = {};
+          transaction.description = "";
+          this.cart.forEach(function (el) {          
+            transaction.description += el.item.description + "\n";
+          });
+
+          transaction.total = this.total;
+          transaction.currency = 'USD';
+
+          paypalApi.getToken(function () {
+            paypalApi.sendPayment({
+              transaction: transaction,
+              returnUrl: '/confirm'
+            });
+          });
       },
 
       _parseQueryString: function() {

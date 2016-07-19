@@ -223,35 +223,58 @@
 
     </style>
       <div class="main-frame">
-        <header>
-          <h1>Order details</h1>
-        </header>
-        <div class="list">
-          <h2>Articles</h2>
-          <template is="dom-repeat" items="[[cart]]" as="entry">
-            <shop-cart-item entry="[[entry]]"></shop-cart-item>
-          </template>
-        </div>
-        <div class="list" style="display:inline-block">
-          <h2>Shipping Address</h2>
-          <div>Mr./Ms. Plopman Plopper</div>
-          <div>15 rue du Général Plop</div>
-          <div>Paris, 75000, France</div>
-        </div>
-        <div class="list" style="display:inline-block">
-          <h2>Billing Address</h2>
-          <div>Mr./Ms. Plopman Plopper</div>
-          <div>15 rue du Général Plop</div>
-          <div>Paris, 75000, France</div>
-        </div>
-        <div class="checkout-box">
-          Total: <span class="subtotal">[[_formatTotal(total)]]</span>
-          <shop-button responsive>
-            <a href="#">Proceed payment</a>
-          </shop-button>
-        </div>
+        <iron-pages selected="[[state]]" attr-for-selected="state">
+          <div state="init">
+            <header>
+              <h1>Order details</h1>
+            </header>
+            <div class="list">
+              <h2>Articles</h2>
+              <template is="dom-repeat" items="[[cart]]" as="entry">
+                <shop-cart-item entry="[[entry]]"></shop-cart-item>
+              </template>
+            </div>
+            <div class="list" style="display:inline-block">
+              <h2>Shipping Address</h2>
+              <div>Mr./Ms. Plopman Plopper</div>
+              <div>15 rue du Général Plop</div>
+              <div>Paris, 75000, France</div>
+            </div>
+            <div class="list" style="display:inline-block">
+              <h2>Billing Address</h2>
+              <div>Mr./Ms. Plopman Plopper</div>
+              <div>15 rue du Général Plop</div>
+              <div>Paris, 75000, France</div>
+            </div>
+            <div class="checkout-box">
+              Total: <span class="subtotal">[[_formatTotal(total)]]</span>
+              <shop-button responsive>
+                <input type="button" on-click="_executePayment" value="Proceed payment">
+              </shop-button>
+            </div>
+          </div>
+          <div state="success">
+            <h1>Thank you</h1>
+            <p>[[response.successMessage]]</p>
+            <shop-button responsive>
+              <a href="/">Finish</a>
+            </shop-button>
+          </div>
+          <div state="error">
+            <h1>We couldn&acute;t process your order</h1>
+            <p id="errorMessage">[[response.errorMessage]]</p>
+            <shop-button responsive>
+              <a href="[[_getLocation()]]">Try again</a>
+            </shop-button> 
+          </div>
+        </iron-pages>
     </div>
-
+    <!-- Handles the routing for the success and error subroutes -->
+    <app-route
+        route="[[route]]"
+        pattern="/:state"
+        on-active-changed="_activeRouteHandler">
+    </app-route>
   </template>
 
   <script>
@@ -273,14 +296,23 @@
 
       },
 
-      ready: function() {
+      _executePayment: function() {
         // listen for the loading event
         // then dislay payement confirmtion
+        var shopConfirm = this;
         var paypalApi = window.paypalApi;
-        paypalApi.executePayment(function() {
-          // body...
+        paypalApi.getToken(function (accessToken) {
+          paypalApi.executePayment(accessToken, function (response) {
+            if (paypalApi.state == "approved") {
+              shopConfirm._pushState('success');
+              shopConfirm.fire('clear-cart');
+            } else {
+              shopConfirm._pushState('error');
+            }
+          })
         });
       },
+
       _visibleChanged: function(visible) {
         if (visible) {
           this.fire('change-section', { title: 'Confirm Checkout' });
@@ -289,6 +321,38 @@
 
       _formatTotal: function(total) {
         return isNaN(total) ? '' : '$' + total.toFixed(2);
+      },
+
+      /**
+       * Sets the valid state and updates the location.
+       */
+      _pushState: function(state) {
+        this._validState = state;
+        this.set('route.path', state);
+      },
+
+      _getLocation: function() {
+        return window.location.href;
+      },
+
+      /**
+       * Checks that the `:state` subroute is correct. That is, the state has been pushed
+       * after receiving response from the server. e.g. Users can only go to `/checkout/success`
+       * if the server responsed with a success message.
+       */
+      _activeRouteHandler: function(e) {
+        var route = e.target;
+
+        if (e.detail.value) {
+          var state = route.data.state;
+          if (this._validState === state) {
+            this.state = state;
+            this._validState = '';
+            return;
+          }
+        }
+
+        this.state = 'init';
       },
 
     });
