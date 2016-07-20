@@ -19,6 +19,8 @@ Then
     $ npm install
 ```
 
+    Note: Don't forget to create the config.json file
+
 to run the demo site juste use
 
 ```bash
